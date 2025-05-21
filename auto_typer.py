@@ -155,6 +155,14 @@ class AutoTyperApp:
         ttk.Radiobutton(arabic_frame, text="Character by Character", variable=self.arabic_mode_var, value="character").grid(row=0, column=0, sticky=tk.W, padx=5, pady=2)
         ttk.Radiobutton(arabic_frame, text="Paste Whole Text", variable=self.arabic_mode_var, value="paste").grid(row=1, column=0, sticky=tk.W, padx=5, pady=2)
 
+        # Add Arabic word mode selector
+        arabic_word_frame = ttk.LabelFrame(options_frame, text="Arabic Character Mode")
+        arabic_word_frame.pack(side=tk.LEFT, fill=tk.BOTH, expand=True, padx=5, pady=5)
+
+        self.arabic_word_mode_var = tk.StringVar(value="word")
+        ttk.Radiobutton(arabic_word_frame, text="Word by Word", variable=self.arabic_word_mode_var, value="word").grid(row=0, column=0, sticky=tk.W, padx=5, pady=2)
+        ttk.Radiobutton(arabic_word_frame, text="Character by Character", variable=self.arabic_word_mode_var, value="character").grid(row=1, column=0, sticky=tk.W, padx=5, pady=2)
+
     def setup_saved_texts_tab(self, parent):
         # List of saved texts
         list_frame = ttk.Frame(parent)
@@ -290,9 +298,25 @@ class AutoTyperApp:
         if is_arabic and arabic_mode == "paste":
             self.type_arabic_text_paste(text, speed)
         else:
-            # For all other cases, use character by character approach
-            chunks = [c for c in text]
+            # For all other cases, determine chunks based on mode
+            if is_arabic:
+                # For Arabic text, check if we want character-by-character or word-by-word
+                arabic_word_mode = getattr(self, 'arabic_word_mode_var', tk.StringVar(value="word")).get()
+                if arabic_word_mode == "character":
+                    # Character by character for Arabic
+                    chunks = [c for c in text]
+                else:
+                    # Word by word for Arabic
+                    chunks = text.split()
+            else:
+                # For non-Arabic, use word-by-word approach
+                chunks = text.split()
+                
             total_chunks = len(chunks)
+            
+            # تعريف المتغيرات المفقودة
+            chars_typed = 0
+            total_chars = len(text)
             
             for i, chunk in enumerate(chunks):
                 if not self.typing_active:
@@ -304,14 +328,26 @@ class AutoTyperApp:
                         return
                 
                 try:
-                    # For Arabic text, use clipboard for each character to ensure proper rendering
+                    # For Arabic text, use clipboard for each chunk to ensure proper rendering
                     if is_arabic:
                         pyperclip.copy(chunk)
                         time.sleep(float(getattr(self, 'clipboard_delay_var', tk.StringVar(value="0.3")).get()))
                         pyautogui.hotkey('ctrl', 'v')
+                        # Add space after word if in word mode and not the last word
+                        if getattr(self, 'arabic_word_mode_var', tk.StringVar(value="word")).get() == "word" and i < total_chunks - 1:
+                            pyautogui.press('space')
+                            # Count the space for progress
+                            chars_typed += len(chunk) + 1
+                        else:
+                            chars_typed += len(chunk)
                     else:
                         # For non-Arabic, we can use direct typing
                         pyautogui.write(chunk)
+                        chars_typed += len(chunk)
+                        # Add space after word if not the last word
+                        if i < total_chunks - 1:
+                            pyautogui.press('space')
+                            chars_typed += 1
                     
                     # Wait according to typing speed
                     time.sleep(speed)
@@ -323,8 +359,8 @@ class AutoTyperApp:
                     self.root.after(0, self.reset_buttons)
                     return
                 
-                # Update progress bar based on character position
-                progress_value = i + 1
+                # Update progress bar based on characters typed
+                progress_value = min(chars_typed, total_chars)
                 self.root.after(0, lambda v=progress_value: self.progress_bar.config(value=v))
             
         self.status_var.set("Typing completed")
@@ -473,108 +509,38 @@ class AutoTyperApp:
             with open(self.config_file, 'w', encoding='utf-8') as f:
                 json.dump(self.saved_texts, f, ensure_ascii=False, indent=2)
         except Exception as e:
-            print(f"Error saving texts: {e}")
+            self.status_var.set(f"Error saving texts: {str(e)}")
+            print(f"Save error: {e}")
 
     def apply_theme(self):
-        theme = self.theme_var.get()
-        if theme == "dark":
-            self.root.configure(bg="#333333")
+        """Apply the selected theme to the application"""
+        if self.theme_var.get() == "dark":
+            # Dark theme colors
+            bg_color = "#2d2d2d"
+            fg_color = "#ffffff"
+            self.root.configure(bg=bg_color)
             style = ttk.Style()
-            style.theme_use("clam")
-            style.configure("TFrame", background="#333333")
-            style.configure("TLabel", background="#333333", foreground="#ffffff")
-            style.configure("TLabelframe", background="#333333", foreground="#ffffff")
-            style.configure("TLabelframe.Label", background="#333333", foreground="#ffffff")
-            style.configure("TButton", background="#555555", foreground="#ffffff")
-            style.configure("TRadiobutton", background="#333333", foreground="#ffffff")
+            style.theme_use('clam')
+            style.configure("TFrame", background=bg_color)
+            style.configure("TLabel", background=bg_color, foreground=fg_color)
+            style.configure("TButton", background=bg_color, foreground=fg_color)
+            style.configure("TLabelframe", background=bg_color, foreground=fg_color)
+            style.configure("TLabelframe.Label", background=bg_color, foreground=fg_color)
+            style.configure("TRadiobutton", background=bg_color, foreground=fg_color)
+            style.configure("TCheckbutton", background=bg_color, foreground=fg_color)
+            style.configure("TNotebook", background=bg_color, foreground=fg_color)
+            style.configure("TNotebook.Tab", background=bg_color, foreground=fg_color)
             
-            self.text_input.configure(bg="#2a2a2a", fg="#ffffff", insertbackground="#ffffff")
-            self.saved_list.configure(bg="#2a2a2a", fg="#ffffff")
+            # Configure text input colors
+            self.text_input.config(bg="#3d3d3d", fg=fg_color, insertbackground=fg_color)
         else:
-            self.root.configure(bg="#f0f0f0")
+            # Light theme (default)
             style = ttk.Style()
-            style.theme_use("clam")
-            style.configure("TFrame", background="#f0f0f0")
-            style.configure("TLabel", background="#f0f0f0", foreground="#000000")
-            style.configure("TLabelframe", background="#f0f0f0", foreground="#000000")
-            style.configure("TLabelframe.Label", background="#f0f0f0", foreground="#000000")
-            style.configure("TButton", background="#e0e0e0", foreground="#000000")
-            style.configure("TRadiobutton", background="#f0f0f0", foreground="#000000")
-            
-            self.text_input.configure(bg="#ffffff", fg="#000000", insertbackground="#000000")
-            self.saved_list.configure(bg="#ffffff", fg="#000000")
-
-if __name__ == "__main__":
-    root = tk.Tk()
-    app = AutoTyperApp(root)
-    root.mainloop()
-
-    def setup_settings_tab(self, parent):
-        # Theme settings
-        theme_frame = ttk.LabelFrame(parent, text="Appearance")
-        theme_frame.pack(fill=tk.X, padx=10, pady=10)
+            style.theme_use('clam')  # Use default theme
+            self.root.configure(bg=self.root.cget('bg'))
+            self.text_input.config(bg="white", fg="black", insertbackground="black")
         
-        self.theme_var = tk.StringVar(value="light")
-        ttk.Radiobutton(theme_frame, text="Light Theme", variable=self.theme_var, value="light", command=self.apply_theme).pack(anchor=tk.W, padx=20, pady=5)
-        ttk.Radiobutton(theme_frame, text="Dark Theme", variable=self.theme_var, value="dark", command=self.apply_theme).pack(anchor=tk.W, padx=20, pady=5)
-        
-        # Clipboard settings
-        clipboard_frame = ttk.LabelFrame(parent, text="Clipboard Settings")
-        clipboard_frame.pack(fill=tk.X, padx=10, pady=10)
-        
-        self.clipboard_delay_var = tk.StringVar(value="0.3")
-        ttk.Label(clipboard_frame, text="Clipboard delay (seconds):").grid(row=0, column=0, sticky=tk.W, padx=5, pady=2)
-        clipboard_entry = ttk.Spinbox(clipboard_frame, from_=0.1, to=1.0, increment=0.1, textvariable=self.clipboard_delay_var, width=5)
-        clipboard_entry.grid(row=0, column=1, sticky=tk.W, padx=5, pady=2)
-        
-        # About section
-        about_frame = ttk.LabelFrame(parent, text="About")
-        about_frame.pack(fill=tk.BOTH, expand=True, padx=10, pady=10)
-        
-        about_text = "Multi-Language Auto Typer\n\n"
-        about_text += "This application allows you to automatically type text in multiple languages including Arabic and English.\n\n"
-        about_text += "Instructions:\n"
-        about_text += "1. Enter the text you want to type automatically\n"
-        about_text += "2. Set the delay and typing speed\n"
-        about_text += "3. Click 'Start Typing' or press F6\n"
-        about_text += "4. Quickly click where you want the text to be typed\n\n"
-        about_text += "You can save frequently used texts for quick access."
-        
-        about_label = ttk.Label(about_frame, text=about_text, wraplength=500, justify=tk.LEFT)
-        about_label.pack(padx=10, pady=10, fill=tk.BOTH, expand=True)
-
-    def setup_settings_tab(self, parent):
-        # RTL text settings
-        rtl_frame = ttk.LabelFrame(parent, text="RTL Text Settings")
-        rtl_frame.pack(fill=tk.X, padx=10, pady=10)
-        
-        self.rtl_support_var = tk.BooleanVar(value=True)
-        ttk.Checkbutton(rtl_frame, text="Enable RTL text support", variable=self.rtl_support_var, 
-                       command=self.toggle_rtl_support).pack(anchor=tk.W, padx=20, pady=5)
-        
-        # RTL text settings
-        rtl_frame = ttk.LabelFrame(parent, text="RTL Text Settings")
-        rtl_frame.pack(fill=tk.X, padx=10, pady=10)
-        
-        self.rtl_support_var = tk.BooleanVar(value=True)
-        ttk.Checkbutton(rtl_frame, text="Enable RTL text support", variable=self.rtl_support_var, 
-                       command=self.toggle_rtl_support).pack(anchor=tk.W, padx=20, pady=5)
-        
-        # About section
-        about_frame = ttk.LabelFrame(parent, text="About")
-        about_frame.pack(fill=tk.BOTH, expand=True, padx=10, pady=10)
-        
-        about_text = "Multi-Language Auto Typer\n\n"
-        about_text += "This application allows you to automatically type text in multiple languages including Arabic and English.\n\n"
-        about_text += "Instructions:\n"
-        about_text += "1. Enter the text you want to type automatically\n"
-        about_text += "2. Set the delay and typing speed\n"
-        about_text += "3. Click 'Start Typing' or press F6\n"
-        about_text += "4. Quickly click where you want the text to be typed\n\n"
-        about_text += "You can save frequently used texts for quick access."
-        
-        about_label = ttk.Label(about_frame, text=about_text, wraplength=500, justify=tk.LEFT)
-        about_label.pack(padx=10, pady=10, fill=tk.BOTH, expand=True)
+        self.status_var.set(f"{self.theme_var.get().capitalize()} theme applied")
 
     def toggle_rtl_support(self):
         """Toggle RTL text support"""
@@ -594,3 +560,91 @@ if __name__ == "__main__":
         else:
             # Standard LTR settings
             self.text_input.config(wrap=tk.WORD)
+
+
+if __name__ == "__main__":
+    root = tk.Tk()
+    app = AutoTyperApp(root)
+    root.mainloop()
+
+
+def create_text_context_menu(self):
+    """Create a right-click context menu for the text input with enhanced paste function"""
+    self.context_menu = tk.Menu(self.root, tearoff=0)
+    self.context_menu.add_command(label="Cut", command=self.cut_text)
+    self.context_menu.add_command(label="Copy", command=self.copy_text)
+    self.context_menu.add_command(label="Paste", command=self.paste_text)
+    self.context_menu.add_command(label="Paste Arabic", command=self.paste_arabic_text)
+    self.context_menu.add_separator()
+    self.context_menu.add_command(label="Select All", command=self.select_all_text)
+    
+    # Bind right-click to show menu
+    self.text_input.bind("<Button-3>", self.show_context_menu)
+    # Also bind Ctrl+V to our custom paste function
+    self.text_input.bind("<Control-v>", lambda e: self.paste_text())
+    self.text_input.bind("<Control-a>", lambda e: self.select_all_text())
+
+def show_context_menu(self, event):
+    """Show the context menu on right-click"""
+    try:
+        self.context_menu.tk_popup(event.x_root, event.y_root)
+    finally:
+        self.context_menu.grab_release()
+
+def cut_text(self):
+    """Cut selected text to clipboard"""
+    try:
+        self.text_input.event_generate("<<Cut>>")
+    except Exception:
+        try:
+            selected_text = self.text_input.get(tk.SEL_FIRST, tk.SEL_LAST)
+            pyperclip.copy(selected_text)
+            self.text_input.delete(tk.SEL_FIRST, tk.SEL_LAST)
+        except:
+            self.status_var.set("No text selected")
+
+def copy_text(self):
+    """Copy selected text to clipboard"""
+    try:
+        self.text_input.event_generate("<<Copy>>")
+    except Exception:
+        try:
+            selected_text = self.text_input.get(tk.SEL_FIRST, tk.SEL_LAST)
+            pyperclip.copy(selected_text)
+        except:
+            self.status_var.set("No text selected")
+
+def paste_text(self):
+    """Paste text from clipboard with special handling for Arabic"""
+    try:
+        clipboard_text = pyperclip.paste()
+        has_arabic = any(0x0600 <= ord(c) <= 0x06FF for c in clipboard_text)
+        if has_arabic:
+            self.paste_arabic_text()
+        else:
+            try:
+                self.text_input.event_generate("<<Paste>>")
+            except:
+                self.text_input.insert(tk.INSERT, clipboard_text)
+    except Exception as e:
+        self.status_var.set(f"Paste error: {str(e)}")
+
+def paste_arabic_text(self):
+    """Special handling for pasting Arabic text"""
+    try:
+        clipboard_text = pyperclip.paste()
+        current_pos = self.text_input.index(tk.INSERT)
+        self.text_input.insert(current_pos, clipboard_text)
+        self.status_var.set("Arabic text pasted successfully")
+    except Exception as e:
+        self.status_var.set(f"Arabic paste error: {str(e)}")
+
+def select_all_text(self, event=None):
+    """Select all text in the text input"""
+    try:
+        self.text_input.tag_add(tk.SEL, "1.0", tk.END)
+        self.text_input.mark_set(tk.INSERT, "1.0")
+        self.text_input.see(tk.INSERT)
+        return 'break'
+    except Exception as e:
+        self.status_var.set(f"Select all error: {str(e)}")
