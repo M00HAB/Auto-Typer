@@ -13,7 +13,7 @@ class AutoTyperApp:
     def __init__(self, root):
         self.root = root
         self.root.title("Multi-Language Auto Typer")
-        self.root.geometry("600x500")
+        self.root.geometry("700x600")
         self.root.resizable(True, True)
         
         # Set app icon if available
@@ -74,6 +74,9 @@ class AutoTyperApp:
         
         # Apply theme
         self.apply_theme()
+        
+        # Initialize context menu
+        self.create_text_context_menu()
 
     def setup_typing_tab(self, parent):
         # Text input area
@@ -113,6 +116,43 @@ class AutoTyperApp:
         save_btn = ttk.Button(save_frame, text="Save", command=self.save_current_text)
         save_btn.grid(row=0, column=2, padx=5, pady=2)
         
+        # Language and typing mode settings
+        mode_frame = ttk.Frame(parent)
+        mode_frame.pack(fill=tk.X, padx=10, pady=5)
+        
+        # Language mode selector
+        lang_frame = ttk.LabelFrame(mode_frame, text="Language Settings")
+        lang_frame.pack(side=tk.LEFT, fill=tk.BOTH, expand=True, padx=5, pady=5)
+        
+        self.lang_mode_var = tk.StringVar(value="auto")
+        ttk.Radiobutton(lang_frame, text="Auto Detect", variable=self.lang_mode_var, value="auto").grid(row=0, column=0, sticky=tk.W, padx=5, pady=2)
+        ttk.Radiobutton(lang_frame, text="Arabic Mode", variable=self.lang_mode_var, value="arabic").grid(row=1, column=0, sticky=tk.W, padx=5, pady=2)
+        ttk.Radiobutton(lang_frame, text="English Mode", variable=self.lang_mode_var, value="english").grid(row=2, column=0, sticky=tk.W, padx=5, pady=2)
+
+        # English typing mode selector
+        english_frame = ttk.LabelFrame(mode_frame, text="English Typing Mode")
+        english_frame.pack(side=tk.LEFT, fill=tk.BOTH, expand=True, padx=5, pady=5)
+        
+        self.english_mode_var = tk.StringVar(value="character")
+        ttk.Radiobutton(english_frame, text="Character by Character", variable=self.english_mode_var, value="character").grid(row=0, column=0, sticky=tk.W, padx=5, pady=2)
+        ttk.Radiobutton(english_frame, text="Word by Word", variable=self.english_mode_var, value="word").grid(row=1, column=0, sticky=tk.W, padx=5, pady=2)
+
+        # Arabic typing mode selector
+        arabic_frame = ttk.LabelFrame(mode_frame, text="Arabic Typing Mode")
+        arabic_frame.pack(side=tk.LEFT, fill=tk.BOTH, expand=True, padx=5, pady=5)
+        
+        self.arabic_mode_var = tk.StringVar(value="character")
+        ttk.Radiobutton(arabic_frame, text="Character by Character", variable=self.arabic_mode_var, value="character").grid(row=0, column=0, sticky=tk.W, padx=5, pady=2)
+        ttk.Radiobutton(arabic_frame, text="Paste Whole Text", variable=self.arabic_mode_var, value="paste").grid(row=1, column=0, sticky=tk.W, padx=5, pady=2)
+
+        # Arabic word mode selector
+        arabic_word_frame = ttk.LabelFrame(mode_frame, text="Arabic Character Mode")
+        arabic_word_frame.pack(side=tk.LEFT, fill=tk.BOTH, expand=True, padx=5, pady=5)
+
+        self.arabic_word_mode_var = tk.StringVar(value="word")
+        ttk.Radiobutton(arabic_word_frame, text="Word by Word", variable=self.arabic_word_mode_var, value="word").grid(row=0, column=0, sticky=tk.W, padx=5, pady=2)
+        ttk.Radiobutton(arabic_word_frame, text="Character by Character", variable=self.arabic_word_mode_var, value="character").grid(row=1, column=0, sticky=tk.W, padx=5, pady=2)
+        
         # Control buttons
         control_frame = ttk.Frame(parent)
         control_frame.pack(fill=tk.X, padx=10, pady=10)
@@ -137,31 +177,6 @@ class AutoTyperApp:
         # Hotkey info
         hotkey_label = ttk.Label(parent, text="Hotkeys: F6 = Start, F7 = Pause/Resume, F8 = Stop")
         hotkey_label.pack(pady=5)
-
-        # Add language mode selector
-        lang_frame = ttk.LabelFrame(options_frame, text="Language Settings")
-        lang_frame.pack(side=tk.LEFT, fill=tk.BOTH, expand=True, padx=5, pady=5)
-        
-        self.lang_mode_var = tk.StringVar(value="auto")
-        ttk.Radiobutton(lang_frame, text="Auto Detect", variable=self.lang_mode_var, value="auto").grid(row=0, column=0, sticky=tk.W, padx=5, pady=2)
-        ttk.Radiobutton(lang_frame, text="Arabic Mode", variable=self.lang_mode_var, value="arabic").grid(row=1, column=0, sticky=tk.W, padx=5, pady=2)
-        ttk.Radiobutton(lang_frame, text="English Mode", variable=self.lang_mode_var, value="english").grid(row=2, column=0, sticky=tk.W, padx=5, pady=2)
-
-        # Add Arabic typing mode selector
-        arabic_frame = ttk.LabelFrame(options_frame, text="Arabic Typing Mode")
-        arabic_frame.pack(side=tk.LEFT, fill=tk.BOTH, expand=True, padx=5, pady=5)
-        
-        self.arabic_mode_var = tk.StringVar(value="character")
-        ttk.Radiobutton(arabic_frame, text="Character by Character", variable=self.arabic_mode_var, value="character").grid(row=0, column=0, sticky=tk.W, padx=5, pady=2)
-        ttk.Radiobutton(arabic_frame, text="Paste Whole Text", variable=self.arabic_mode_var, value="paste").grid(row=1, column=0, sticky=tk.W, padx=5, pady=2)
-
-        # Add Arabic word mode selector
-        arabic_word_frame = ttk.LabelFrame(options_frame, text="Arabic Character Mode")
-        arabic_word_frame.pack(side=tk.LEFT, fill=tk.BOTH, expand=True, padx=5, pady=5)
-
-        self.arabic_word_mode_var = tk.StringVar(value="word")
-        ttk.Radiobutton(arabic_word_frame, text="Word by Word", variable=self.arabic_word_mode_var, value="word").grid(row=0, column=0, sticky=tk.W, padx=5, pady=2)
-        ttk.Radiobutton(arabic_word_frame, text="Character by Character", variable=self.arabic_word_mode_var, value="character").grid(row=1, column=0, sticky=tk.W, padx=5, pady=2)
 
     def setup_saved_texts_tab(self, parent):
         # List of saved texts
@@ -227,19 +242,6 @@ class AutoTyperApp:
         
         about_label = ttk.Label(about_frame, text=about_text, wraplength=500, justify=tk.LEFT)
         about_label.pack(padx=10, pady=10, fill=tk.BOTH, expand=True)
-
-        # Linux compatibility note
-        if os.name != 'nt':  # Check if not Windows
-            linux_note = ttk.LabelFrame(parent, text="Linux Compatibility")
-            linux_note.pack(fill=tk.X, padx=10, pady=10)
-            
-            linux_text = "For Linux users:\n"
-            linux_text += "1. Make sure xclip or xsel is installed for clipboard functionality:\n"
-            linux_text += "   sudo apt-get install xclip    or    sudo apt-get install xsel\n"
-            linux_text += "2. Some window managers may require adjustments for the auto-typing to work properly."
-            
-            linux_label = ttk.Label(linux_note, text=linux_text, wraplength=500, justify=tk.LEFT)
-            linux_label.pack(padx=10, pady=10, fill=tk.X)
         
     def start_typing(self):
         if self.typing_active:
@@ -291,32 +293,34 @@ class AutoTyperApp:
             self.lang_mode_var.get() == "auto" and any(0x0600 <= ord(c) <= 0x06FF for c in text)
         )
         
-        # Get the Arabic typing mode
-        arabic_mode = getattr(self, 'arabic_mode_var', tk.StringVar(value="character")).get()
+        # Get the typing modes
+        arabic_mode = self.arabic_mode_var.get()
+        english_mode = self.english_mode_var.get()
         
         # For Arabic text with paste mode, use the whole text approach
         if is_arabic and arabic_mode == "paste":
             self.type_arabic_text_paste(text, speed)
         else:
-            # For all other cases, determine chunks based on mode
-            if is_arabic:
-                # For Arabic text, check if we want character-by-character or word-by-word
-                arabic_word_mode = getattr(self, 'arabic_word_mode_var', tk.StringVar(value="word")).get()
-                if arabic_word_mode == "character":
-                    # Character by character for Arabic
-                    chunks = [c for c in text]
-                else:
-                    # Word by word for Arabic
-                    chunks = text.split()
-            else:
-                # For non-Arabic, use word-by-word approach
-                chunks = text.split()
-                
-            total_chunks = len(chunks)
-            
-            # تعريف المتغيرات المفقودة
+            # Initialize progress tracking
             chars_typed = 0
             total_chars = len(text)
+            
+            # Determine chunks based on language and mode
+            if is_arabic:
+                # For Arabic text, check if we want character-by-character or word-by-word
+                arabic_word_mode = self.arabic_word_mode_var.get()
+                if arabic_word_mode == "character":
+                    chunks = [c for c in text]
+                else:
+                    chunks = text.split()
+            else:
+                # For English text, use the selected mode
+                if english_mode == "character":
+                    chunks = [c for c in text]
+                else:
+                    chunks = text.split()
+                
+            total_chunks = len(chunks)
             
             for i, chunk in enumerate(chunks):
                 if not self.typing_active:
@@ -328,30 +332,50 @@ class AutoTyperApp:
                         return
                 
                 try:
-                    # For Arabic text, use clipboard for each chunk to ensure proper rendering
                     if is_arabic:
+                        # For Arabic text, use clipboard for each chunk to ensure proper rendering
                         pyperclip.copy(chunk)
-                        time.sleep(float(getattr(self, 'clipboard_delay_var', tk.StringVar(value="0.3")).get()))
+                        time.sleep(float(self.clipboard_delay_var.get()))
                         pyautogui.hotkey('ctrl', 'v')
+                        
                         # Add space after word if in word mode and not the last word
-                        if getattr(self, 'arabic_word_mode_var', tk.StringVar(value="word")).get() == "word" and i < total_chunks - 1:
+                        if self.arabic_word_mode_var.get() == "word" and i < total_chunks - 1:
                             pyautogui.press('space')
-                            # Count the space for progress
                             chars_typed += len(chunk) + 1
                         else:
                             chars_typed += len(chunk)
                     else:
-                        # For non-Arabic, we can use direct typing
-                        pyautogui.write(chunk)
-                        chars_typed += len(chunk)
-                        # Add space after word if not the last word
-                        if i < total_chunks - 1:
-                            pyautogui.press('space')
+                        # For English text
+                        if english_mode == "character":
+                            # Character by character typing
+                            if chunk == ' ':
+                                pyautogui.press('space')
+                            elif chunk == '\n':
+                                pyautogui.press('enter')
+                            elif chunk == '\t':
+                                pyautogui.press('tab')
+                            else:
+                                pyautogui.press(chunk)
                             chars_typed += 1
+                        else:
+                            # Word by word typing
+                            pyautogui.write(chunk)
+                            chars_typed += len(chunk)
+                            # Add space after word if not the last word
+                            if i < total_chunks - 1:
+                                pyautogui.press('space')
+                                chars_typed += 1
                     
-                    # Wait according to typing speed
-                    time.sleep(speed)
-                    
+                    # Apply speed delay
+                    if english_mode == "character" and not is_arabic:
+                        # For character mode, apply delay after each character
+                        time.sleep(speed)
+                    elif not is_arabic:
+                        # For word mode, apply delay after each word
+                        time.sleep(speed)
+                    elif is_arabic:
+                        # Apply speed delay for all languages
+                        time.sleep(speed)
                 except Exception as e:
                     self.status_var.set(f"Error typing text: {str(e)}")
                     print(f"Typing error: {str(e)}")
@@ -370,55 +394,47 @@ class AutoTyperApp:
     def type_arabic_text_paste(self, text, speed):
         """Special handling for Arabic text using paste mode"""
         try:
-            # Copy the entire text to clipboard
-            pyperclip.copy(text)
-            
-            # Wait a moment to ensure text is copied
-            clipboard_delay = float(getattr(self, 'clipboard_delay_var', tk.StringVar(value="0.3")).get())
-            time.sleep(clipboard_delay)
-            
-            # Try multiple paste methods
-            try:
-                # Method 1: Standard hotkey
-                pyautogui.hotkey('ctrl', 'v')
-            except:
-                try:
-                    # Method 2: Alternative approach
-                    pyautogui.keyDown('ctrl')
-                    pyautogui.press('v')
-                    pyautogui.keyUp('ctrl')
-                except:
-                    # Method 3: Try using win32clipboard
-                    try:
-                        import win32clipboard
-                        win32clipboard.OpenClipboard()
-                        win32clipboard.EmptyClipboard()
-                        win32clipboard.SetClipboardText(text, win32clipboard.CF_UNICODETEXT)
-                        win32clipboard.CloseClipboard()
+            # If speed is significant, type word by word instead of pasting all at once
+            if speed > 0.1:  # If user wants slower typing
+                words = text.split()
+                for i, word in enumerate(words):
+                    if not self.typing_active:
+                        return
                         
-                        # Try pasting again
-                        time.sleep(clipboard_delay)
-                        pyautogui.hotkey('ctrl', 'v')
-                    except:
-                        self.status_var.set("Failed to paste Arabic text. Please check clipboard functionality.")
-            
-            # Update progress bar to 100%
-            self.root.after(0, lambda: self.progress_bar.config(value=len(text)))
-            
-            # Wait a moment to ensure text is pasted
-            time.sleep(speed * 5)
-            
+                    while self.pause_typing:
+                        time.sleep(0.1)
+                        if not self.typing_active:
+                            return
+                    
+                    # Copy and paste each word
+                    pyperclip.copy(word)
+                    clipboard_delay = float(self.clipboard_delay_var.get())
+                    time.sleep(clipboard_delay)
+                    pyautogui.hotkey('ctrl', 'v')
+                    
+                    # Add space after word if not the last word
+                    if i < len(words) - 1:
+                        pyautogui.press('space')
+                    
+                    # Apply speed delay
+                    time.sleep(speed)
+                    
+                    # Update progress
+                    progress = (i + 1) * len(text) // len(words)
+                    self.root.after(0, lambda v=progress: self.progress_bar.config(value=v))
+            else:
+                # For very fast speeds, use original paste method
+                pyperclip.copy(text)
+                clipboard_delay = float(self.clipboard_delay_var.get())
+                time.sleep(clipboard_delay)
+                pyautogui.hotkey('ctrl', 'v')
+                self.root.after(0, lambda: self.progress_bar.config(value=len(text)))
+                
         except Exception as e:
-            self.status_var.set(f"Error pasting text: {str(e)}")
-            print(f"Clipboard error: {str(e)}")
+            self.status_var.set(f"Error pasting Arabic text: {str(e)}")
+            print(f"Arabic paste error: {str(e)}")
             self.typing_active = False
             self.root.after(0, self.reset_buttons)
-
-    def process_text_to_chunks(self, text):
-        """Break text into appropriate chunks for typing"""
-        # This method is kept for backward compatibility
-        # Now we handle chunking directly in the typing_thread method
-        return [c for c in text]
 
     def toggle_pause(self):
         if not self.typing_active:
@@ -542,109 +558,88 @@ class AutoTyperApp:
         
         self.status_var.set(f"{self.theme_var.get().capitalize()} theme applied")
 
-    def toggle_rtl_support(self):
-        """Toggle RTL text support"""
-        self.rtl_support = self.rtl_support_var.get()
-        # Apply RTL settings to text input
-        if self.rtl_support:
-            # Enable RTL for text input
+    def create_text_context_menu(self):
+        """Create a right-click context menu for the text input"""
+        self.context_menu = tk.Menu(self.root, tearoff=0)
+        self.context_menu.add_command(label="Cut", command=self.cut_text)
+        self.context_menu.add_command(label="Copy", command=self.copy_text)
+        self.context_menu.add_command(label="Paste", command=self.paste_text)
+        self.context_menu.add_command(label="Paste Arabic", command=self.paste_arabic_text)
+        self.context_menu.add_separator()
+        self.context_menu.add_command(label="Select All", command=self.select_all_text)
+        
+        # Bind right-click to show menu
+        self.text_input.bind("<Button-3>", self.show_context_menu)
+        # Also bind Ctrl+V to our custom paste function
+        self.text_input.bind("<Control-v>", lambda e: self.paste_text())
+        self.text_input.bind("<Control-a>", lambda e: self.select_all_text())
+
+    def show_context_menu(self, event):
+        """Show the context menu on right-click"""
+        try:
+            self.context_menu.tk_popup(event.x_root, event.y_root)
+        finally:
+            self.context_menu.grab_release()
+
+    def cut_text(self):
+        """Cut selected text to clipboard"""
+        try:
+            self.text_input.event_generate("<<Cut>>")
+        except Exception:
             try:
-                self.text_input.config(wrap=tk.WORD)
-                # Some platforms support this direct RTL configuration
-                try:
-                    self.text_input.config(undo=True, autoseparators=True)
-                except:
-                    pass
+                selected_text = self.text_input.get(tk.SEL_FIRST, tk.SEL_LAST)
+                pyperclip.copy(selected_text)
+                self.text_input.delete(tk.SEL_FIRST, tk.SEL_LAST)
             except:
-                self.status_var.set("Warning: Limited RTL support on this platform")
-        else:
-            # Standard LTR settings
-            self.text_input.config(wrap=tk.WORD)
+                self.status_var.set("No text selected")
 
+    def copy_text(self):
+        """Copy selected text to clipboard"""
+        try:
+            self.text_input.event_generate("<<Copy>>")
+        except Exception:
+            try:
+                selected_text = self.text_input.get(tk.SEL_FIRST, tk.SEL_LAST)
+                pyperclip.copy(selected_text)
+            except:
+                self.status_var.set("No text selected")
 
+    def paste_text(self):
+        """Paste text from clipboard with special handling for Arabic"""
+        try:
+            clipboard_text = pyperclip.paste()
+            if clipboard_text:
+                # Check if text contains Arabic characters
+                has_arabic = any(0x0600 <= ord(c) <= 0x06FF for c in clipboard_text)
+                if has_arabic and self.lang_mode_var.get() != "english":
+                    # Handle Arabic text specially
+                    self.text_input.insert(tk.INSERT, clipboard_text)
+                else:
+                    # Use standard paste for non-Arabic
+                    self.text_input.event_generate("<<Paste>>")
+        except Exception as e:
+            self.status_var.set(f"Paste error: {str(e)}")
+    
+    def paste_arabic_text(self):
+        """Force paste as Arabic text regardless of content"""
+        try:
+            clipboard_text = pyperclip.paste()
+            if clipboard_text:
+                self.text_input.insert(tk.INSERT, clipboard_text)
+        except Exception as e:
+            self.status_var.set(f"Arabic paste error: {str(e)}")
+    
+    def select_all_text(self):
+        """Select all text in the input field"""
+        try:
+            self.text_input.tag_add(tk.SEL, "1.0", tk.END)
+            self.text_input.mark_set(tk.INSERT, "1.0")
+            self.text_input.see(tk.INSERT)
+        except Exception as e:
+            self.status_var.set(f"Select all error: {str(e)}")
+
+# Add this at the end of the file
 if __name__ == "__main__":
     root = tk.Tk()
     app = AutoTyperApp(root)
     root.mainloop()
-
-
-def create_text_context_menu(self):
-    """Create a right-click context menu for the text input with enhanced paste function"""
-    self.context_menu = tk.Menu(self.root, tearoff=0)
-    self.context_menu.add_command(label="Cut", command=self.cut_text)
-    self.context_menu.add_command(label="Copy", command=self.copy_text)
-    self.context_menu.add_command(label="Paste", command=self.paste_text)
-    self.context_menu.add_command(label="Paste Arabic", command=self.paste_arabic_text)
-    self.context_menu.add_separator()
-    self.context_menu.add_command(label="Select All", command=self.select_all_text)
-    
-    # Bind right-click to show menu
-    self.text_input.bind("<Button-3>", self.show_context_menu)
-    # Also bind Ctrl+V to our custom paste function
-    self.text_input.bind("<Control-v>", lambda e: self.paste_text())
-    self.text_input.bind("<Control-a>", lambda e: self.select_all_text())
-
-def show_context_menu(self, event):
-    """Show the context menu on right-click"""
-    try:
-        self.context_menu.tk_popup(event.x_root, event.y_root)
-    finally:
-        self.context_menu.grab_release()
-
-def cut_text(self):
-    """Cut selected text to clipboard"""
-    try:
-        self.text_input.event_generate("<<Cut>>")
-    except Exception:
-        try:
-            selected_text = self.text_input.get(tk.SEL_FIRST, tk.SEL_LAST)
-            pyperclip.copy(selected_text)
-            self.text_input.delete(tk.SEL_FIRST, tk.SEL_LAST)
-        except:
-            self.status_var.set("No text selected")
-
-def copy_text(self):
-    """Copy selected text to clipboard"""
-    try:
-        self.text_input.event_generate("<<Copy>>")
-    except Exception:
-        try:
-            selected_text = self.text_input.get(tk.SEL_FIRST, tk.SEL_LAST)
-            pyperclip.copy(selected_text)
-        except:
-            self.status_var.set("No text selected")
-
-def paste_text(self):
-    """Paste text from clipboard with special handling for Arabic"""
-    try:
-        clipboard_text = pyperclip.paste()
-        has_arabic = any(0x0600 <= ord(c) <= 0x06FF for c in clipboard_text)
-        if has_arabic:
-            self.paste_arabic_text()
-        else:
-            try:
-                self.text_input.event_generate("<<Paste>>")
-            except:
-                self.text_input.insert(tk.INSERT, clipboard_text)
-    except Exception as e:
-        self.status_var.set(f"Paste error: {str(e)}")
-
-def paste_arabic_text(self):
-    """Special handling for pasting Arabic text"""
-    try:
-        clipboard_text = pyperclip.paste()
-        current_pos = self.text_input.index(tk.INSERT)
-        self.text_input.insert(current_pos, clipboard_text)
-        self.status_var.set("Arabic text pasted successfully")
-    except Exception as e:
-        self.status_var.set(f"Arabic paste error: {str(e)}")
-
-def select_all_text(self, event=None):
-    """Select all text in the text input"""
-    try:
-        self.text_input.tag_add(tk.SEL, "1.0", tk.END)
-        self.text_input.mark_set(tk.INSERT, "1.0")
-        self.text_input.see(tk.INSERT)
-        return 'break'
-    except Exception as e:
-        self.status_var.set(f"Select all error: {str(e)}")
